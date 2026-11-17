@@ -425,8 +425,8 @@ final class RetroLEDClockView: ScreenSaverView {
         checkBurnIn = NSButton(checkboxWithTitle: "Burn-in protection (moves clock each minute)", target: nil, action: nil)
         sizeSlider = NSSlider(value: 0.5, minValue: 0.2, maxValue: 0.95, target: nil, action: nil)
         brightSlider = NSSlider(value: 1, minValue: 0.25, maxValue: 1, target: nil, action: nil)
-        sizeSlider.widthAnchor.constraint(equalToConstant: 220).isActive = true
-        brightSlider.widthAnchor.constraint(equalToConstant: 220).isActive = true
+        sizeSlider.widthAnchor.constraint(equalToConstant: 170).isActive = true
+        brightSlider.widthAnchor.constraint(equalToConstant: 170).isActive = true
 
         func row(_ label: String, _ control: NSView) -> NSStackView {
             let l = NSTextField(labelWithString: label)
@@ -470,9 +470,11 @@ final class RetroLEDClockView: ScreenSaverView {
             stack.topAnchor.constraint(equalTo: content.topAnchor),
             stack.bottomAnchor.constraint(equalTo: content.bottomAnchor),
             buttons.trailingAnchor.constraint(equalTo: stack.trailingAnchor, constant: -20),
+            content.widthAnchor.constraint(equalToConstant: 420),
         ])
         win.contentView = content
-        win.setContentSize(stack.fittingSize)
+        content.layoutSubtreeIfNeeded()
+        win.setContentSize(NSSize(width: 420, height: content.fittingSize.height))
         return win
     }
 
