@@ -40,6 +40,7 @@ final class ClockSettings {
             "burnIn": true,
             "size": 0.5,
             "brightness": 1.0,
+            "showPanel": true,
         ])
     }
 
@@ -53,6 +54,7 @@ final class ClockSettings {
     var blinkColon: Bool  { get { d.bool(forKey: "blinkColon") }  set { d.set(newValue, forKey: "blinkColon") } }
     var burnIn: Bool      { get { d.bool(forKey: "burnIn") }      set { d.set(newValue, forKey: "burnIn") } }
     var size: Double      { get { d.double(forKey: "size") }      set { d.set(newValue, forKey: "size") } }
+    var showPanel: Bool   { get { d.bool(forKey: "showPanel") }   set { d.set(newValue, forKey: "showPanel") } }
     var brightness: Double { get { d.double(forKey: "brightness") } set { d.set(newValue, forKey: "brightness") } }
 
     func save() { d.synchronize() }
@@ -141,6 +143,7 @@ final class RetroLEDClockView: ScreenSaverView {
     private var checkAMPM: NSButton!
     private var checkBlink: NSButton!
     private var checkBurnIn: NSButton!
+    private var checkPanel: NSButton!
     private var sizeSlider: NSSlider!
     private var brightSlider: NSSlider!
 
@@ -293,6 +296,7 @@ final class RetroLEDClockView: ScreenSaverView {
         let panel = CGRect(x: cx - panelW / 2, y: cy - panelH / 2, width: panelW, height: panelH)
             .integral
 
+        let showPanel = settings.showPanel
         let theme = kThemes[settings.theme].color
         let lit = theme.cgColor
         let ghost = theme.withAlphaComponent(0.075).cgColor
@@ -302,15 +306,17 @@ final class RetroLEDClockView: ScreenSaverView {
         ctx.setAlpha(fade * CGFloat(max(0.2, min(1, settings.brightness))))
 
         // Panel
-        let radius = w * 0.18
-        let panelPath = CGPath(roundedRect: panel, cornerWidth: radius, cornerHeight: radius, transform: nil)
-        ctx.addPath(panelPath)
-        ctx.setFillColor(NSColor(white: 0.055, alpha: 1).cgColor)
-        ctx.fillPath()
-        ctx.addPath(panelPath)
-        ctx.setStrokeColor(NSColor(white: 1, alpha: 0.06).cgColor)
-        ctx.setLineWidth(max(1, w * 0.015))
-        ctx.strokePath()
+        if showPanel {
+            let radius = w * 0.18
+            let panelPath = CGPath(roundedRect: panel, cornerWidth: radius, cornerHeight: radius, transform: nil)
+            ctx.addPath(panelPath)
+            ctx.setFillColor(NSColor(white: 0.055, alpha: 1).cgColor)
+            ctx.fillPath()
+            ctx.addPath(panelPath)
+            ctx.setStrokeColor(NSColor(white: 1, alpha: 0.06).cgColor)
+            ctx.setLineWidth(max(1, w * 0.015))
+            ctx.strokePath()
+        }
 
         // Segments
         let t = w * 0.17
@@ -321,7 +327,7 @@ final class RetroLEDClockView: ScreenSaverView {
         let ghostPath = CGMutablePath()
 
         if showAMPM {
-            drawAMPM(ctx: ctx, origin: CGPoint(x: x, y: y), w: w, h: dh, isPM: isPM, theme: theme)
+            drawAMPM(ctx: ctx, origin: CGPoint(x: x, y: y), w: w, h: dh, isPM: isPM, theme: theme, showGhost: showPanel)
             x += (ampmW + spacing) * w
         }
 
@@ -346,9 +352,11 @@ final class RetroLEDClockView: ScreenSaverView {
             }
         }
 
-        ctx.addPath(ghostPath)
-        ctx.setFillColor(ghost)
-        ctx.fillPath()
+        if showPanel {
+            ctx.addPath(ghostPath)
+            ctx.setFillColor(ghost)
+            ctx.fillPath()
+        }
 
         ctx.saveGState()
         ctx.setShadow(offset: .zero, blur: w * 0.28, color: glow)
@@ -360,10 +368,11 @@ final class RetroLEDClockView: ScreenSaverView {
         ctx.restoreGState()
     }
 
-    private func drawAMPM(ctx: CGContext, origin: CGPoint, w: CGFloat, h: CGFloat, isPM: Bool, theme: NSColor) {
+    private func drawAMPM(ctx: CGContext, origin: CGPoint, w: CGFloat, h: CGFloat, isPM: Bool, theme: NSColor, showGhost: Bool) {
         let font = NSFont.systemFont(ofSize: w * 0.27, weight: .semibold)
         let dot = w * 0.15
         for (label, fy, active) in [("AM", CGFloat(0.70), !isPM), ("PM", CGFloat(0.30), isPM)] {
+            if !active && !showGhost { continue }
             let color = active ? theme : theme.withAlphaComponent(0.22)
             let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color]
             let str = NSAttributedString(string: label, attributes: attrs)
@@ -412,6 +421,7 @@ final class RetroLEDClockView: ScreenSaverView {
         checkSeconds = NSButton(checkboxWithTitle: "Show seconds", target: nil, action: nil)
         checkAMPM = NSButton(checkboxWithTitle: "Show AM/PM indicator (12-hour)", target: nil, action: nil)
         checkBlink = NSButton(checkboxWithTitle: "Blink colon", target: nil, action: nil)
+        checkPanel = NSButton(checkboxWithTitle: "Show background panel & unlit segments", target: nil, action: nil)
         checkBurnIn = NSButton(checkboxWithTitle: "Burn-in protection (moves clock each minute)", target: nil, action: nil)
         sizeSlider = NSSlider(value: 0.5, minValue: 0.2, maxValue: 0.95, target: nil, action: nil)
         brightSlider = NSSlider(value: 1, minValue: 0.25, maxValue: 1, target: nil, action: nil)
@@ -442,7 +452,7 @@ final class RetroLEDClockView: ScreenSaverView {
             row("Color", themePopup),
             row("Size", sizeSlider),
             row("Brightness", brightSlider),
-            check24, checkSeconds, checkAMPM, checkBlink, checkBurnIn,
+            checkPanel, check24, checkSeconds, checkAMPM, checkBlink, checkBurnIn,
             buttons,
         ])
         stack.orientation = .vertical
@@ -473,6 +483,7 @@ final class RetroLEDClockView: ScreenSaverView {
         checkAMPM.state = settings.showAMPM ? .on : .off
         checkBlink.state = settings.blinkColon ? .on : .off
         checkBurnIn.state = settings.burnIn ? .on : .off
+        checkPanel.state = settings.showPanel ? .on : .off
         sizeSlider.doubleValue = settings.size
         brightSlider.doubleValue = settings.brightness
     }
@@ -493,6 +504,7 @@ final class RetroLEDClockView: ScreenSaverView {
         settings.showAMPM = checkAMPM.state == .on
         settings.blinkColon = checkBlink.state == .on
         settings.burnIn = checkBurnIn.state == .on
+        settings.showPanel = checkPanel.state == .on
         settings.size = sizeSlider.doubleValue
         settings.brightness = brightSlider.doubleValue
         settings.save()

@@ -14,6 +14,7 @@ A vintage 7-segment LED clock with glowing digits and faint "unlit" segments.
 - 8 colors: Red, Blue, Yellow, Green, Purple, Orange, Pink, White
 - 12/24-hour, AM/PM indicator, seconds, blinking colon
 - Size and brightness sliders
+- Show/hide the background panel and unlit segments (off = digits only)
 - Burn-in protection: the clock glides to a new spot every minute
 
 ## Uninstall
