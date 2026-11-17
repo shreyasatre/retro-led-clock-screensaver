@@ -3,12 +3,28 @@
 A vintage 7-segment LED clock with glowing digits and faint "unlit" segments.
 
 ## Install
-1. Unzip, open Terminal, and run:
+
+### Option A: download a prebuilt release
+1. Download the latest `.zip` from [Releases](https://github.com/shreyasatre/retro-led-clock-screensaver/releases) and unzip it.
+2. Prebuilt versions aren't notarized by Apple, so macOS will block them at first.
+   Right-click **Retro LED Clock.saver** → **Open**, or run:
    ```
-   bash ~/Downloads/RetroLEDClock/install.sh
+   xattr -cr ~/Downloads/"Retro LED Clock.saver"
    ```
-   (adjust the path if you unzipped elsewhere). If prompted, install the Command Line Tools, then run it again.
-2. System Settings → Screen Saver → pick **Retro LED Clock** → **Options…**
+3. Double-click **Retro LED Clock.saver** to install it.
+
+### Option B: build from source
+Building it yourself avoids the Gatekeeper warning.
+```
+git clone https://github.com/shreyasatre/retro-led-clock-screensaver
+cd retro-led-clock-screensaver
+bash install.sh
+```
+If prompted, install Apple's Command Line Tools, then run `install.sh` again.
+
+### Then
+Open System Settings → Screen Saver, pick **Retro LED Clock**, and click **Options…**
+To preview it full-screen right away, run `open -a ScreenSaverEngine`.
 
 ## Options
 - 8 colors: Red, Blue, Yellow, Green, Purple, Orange, Pink, White
